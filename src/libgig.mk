@@ -2,14 +2,14 @@
 
 PKG             := libgig
 $(PKG)_WEBSITE  := https://linuxsampler.org/
-$(PKG)_DESCR    := libgig
+$(PKG)_DESCR    := C++ library for accessing Gigasampler/GigaStudio, DLS, SoundFont and KORG sound files
 $(PKG)_IGNORE   :=
 $(PKG)_VERSION  := 4.4.1
 $(PKG)_CHECKSUM := fdc89efab1f906128e6c54729967577e8d0462017018bc12551257df5dfe3aa4
 $(PKG)_SUBDIR   := libgig-$($(PKG)_VERSION)
 $(PKG)_FILE     := libgig-$($(PKG)_VERSION).tar.bz2
 $(PKG)_URL      := https://download.linuxsampler.org/packages/$($(PKG)_FILE)
-$(PKG)_DEPS     := cc
+$(PKG)_DEPS     := cc libsndfile
 
 define $(PKG)_UPDATE
     $(WGET) -q -O- 'https://download.linuxsampler.org/packages/' | \
@@ -17,20 +17,19 @@ define $(PKG)_UPDATE
     tail -1
 endef
 
+# -std=gnu++11 -m32 -lrpcrt4
+
 define $(PKG)_BUILD
-    cd '$(1)' && ./configure \
-        --host='$(TARGET)' \
-        --build="`config.guess`" \
-        --disable-shared \
-        --prefix='$(PREFIX)/$(TARGET)' \
+    cd '$(BUILD_DIR)' && $(SOURCE_DIR)/configure \
+        $(MXE_CONFIGURE_OPTS) \
         PKG_CONFIG='$(PREFIX)/bin/$(TARGET)-pkg-config'
-    $(MAKE) -C '$(1)' -j '$(JOBS)'
-    $(MAKE) -C '$(1)' -j 1 install
+    $(MAKE) -C '$(BUILD_DIR)' -j '$(JOBS)'
+    $(MAKE) -C '$(BUILD_DIR)' -j 1 install
 
     '$(TARGET)-g++' \
-        -Wall -Wextra -std=c++11 \
+        -Wall -Wextra -Wno-unused-parameter -std=c++11 \
         '$(TEST_FILE)' -o '$(PREFIX)/$(TARGET)/bin/test-libgig.exe' \
-        `'$(TARGET)-pkg-config' libgig --cflags --libs`
+        `'$(TARGET)-pkg-config' gig --cflags --libs`
 endef
 
 $(PKG)_BUILD_SHARED =

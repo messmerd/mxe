@@ -15,13 +15,17 @@ int main(int argc, char *argv[])
         RIFF::File riff{"nonexistent.gig"};
         gig::File gig{&riff};
 
-        gig::Instrument* instrument = gig.GetFirstInstrument();
-        if (instrument)
+        std::size_t count = gig.CountInstruments();
+        if (count > 0)
         {
-            DLS::Info* info = instrument->pInfo;
-            if (info)
+            gig::Instrument* instrument = gig.GetInstrument(0);
+            if (instrument)
             {
-                std::cout << info->Name << "\n";
+                DLS::Info* info = instrument->pInfo;
+                if (info)
+                {
+                    std::cout << info->Name << "\n";
+                }
             }
         }
     }
